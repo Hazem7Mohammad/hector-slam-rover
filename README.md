@@ -40,3 +40,14 @@ check yori localize and udemy localize and your other pkgs. rover1 and gp1
 
 -------------------------------------------------------------------------------------
 the arduino file is only cmd i need to fix arduino file in package to have same connection as mode 4 of cars 
+
+
+-----------------------------------------------------------------------------------------
+
+raspberry pi with the small lidar not working
+either need a big lidar or download new image to new raspberry and see if lidar will work there. 
+
+anyways we need it for testing 
+
+
+
