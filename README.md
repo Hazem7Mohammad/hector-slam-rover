@@ -30,5 +30,9 @@ without reaching the movement.py step i can try the robot movement in rviz and s
 
 and then try to fix the localize file for best thing possible 
 
+keep this pkg on github as reference and clone it on laptop as many times as you need to get the best amcl and navigation movement possible. 
+
+check yori localize and udemy localize and your other pkgs. rover1 and gp1 
+
 
 the arduino file is only cmd i need to fix arduino file in package to have same connection as mode 4 of cars 
