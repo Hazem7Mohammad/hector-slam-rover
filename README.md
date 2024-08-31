@@ -31,3 +31,4 @@ without reaching the movement.py step i can try the robot movement in rviz and s
 and then try to fix the localize file for best thing possible 
 
 
+the arduino file is only cmd i need to fix arduino file in package to have same connection as mode 4 of cars 
