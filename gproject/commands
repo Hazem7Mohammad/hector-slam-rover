@@ -1,0 +1,23 @@
+sudo chmod a+rw /dev/ttyACM0 
+
+roslaunch gproject lidar.launch
+
+roslaunch hector_slam tutorial.launch
+
+rosrun map_server map_saver -f ~/ros/catkin_ws/src/gproject/worlds/home1
+
+
+
+
+
+agiaaaaaaan 
+
+roslaunch gproject lidar.launch
+
+give permission to adom transformer script 
+
+roslaunch gproject odomtransformer.launch
+
+roslaunch gproject localize.launch
+
+rosrun gproject movement.py 

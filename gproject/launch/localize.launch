@@ -1,0 +1,192 @@
+<launch>
+
+<!--new line RVIZ needed-->
+	
+<node pkg="rviz" type="rviz" name="rviz"
+  args="-d $(find hector_slam_launch)/rviz_cfg/mapping_demo.rviz"/>
+
+<!-- Wait for the lidar to start up. -->
+<arg name="node_start_delay" default="5.0" />  
+
+<!-- Run the map server --> 
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find gproject)/worlds/home1.yaml"/>
+
+<!-- Add transformations. -->
+
+<node pkg="tf" type="static_transform_publisher" name="link_to_laser_bc" args="0 0 0 0 0 0 base_link laser 100"/>
+
+
+<!-- 
+  HECTOR STUFF. 
+-->
+
+<arg name="tf_map_scanmatch_transform_frame_name" default="scanmatcher_frame"/>
+<arg name="base_frame" default="base_link"/>
+<arg name="odom_frame" default="base_link"/>
+<!-- Change below!! Used to be true. -->
+<arg name="pub_map_odom_transform" default="false"/> <!--false?-->
+<arg name="scan_subscriber_queue_size" default="5"/>
+<arg name="scan_topic" default="scan"/>
+<arg name="map_size" default="2048"/>
+
+<arg name="pub_odometry" default="true"/>  <!--new line -->
+
+  <node pkg="hector_mapping" type="hector_mapping" name="hector_mapping" output="screen">
+  <param name="pub_odometry" value="$(arg pub_odometry)"/> <!--new line -->
+
+  <!-- Frame names -->
+  <remap from="map" to="mapcurrent" /> <!--new line -->
+  <param name="map_frame" value="mapcurrent_frame" /> <!--name was map  -->
+  <param name="base_frame" value="$(arg base_frame)" />
+  <param name="odom_frame" value="$(arg odom_frame)" />
+  
+<!-- up lines  -->
+<!-- These few lines give a name to a map-to-scan frame, they specify base_link as the robot base frame and also 
+the odom frame (since in our case Hector is not getting any additional odometry from an IMU), and also ask Hector 
+to not publish a map-to-odom transformation. This will be taken care of my AMCL (the probabilistic localization 
+package well use). Additionally, we change the map topic Hector used to publish its SLAM-created map to a different 
+name because well be serving our own pre-made map. -->
+
+
+
+  <!-- Tf use -->
+  <param name="use_tf_scan_transformation" value="true"/>
+  <param name="use_tf_pose_start_estimate" value="false"/>
+  <param name="pub_map_odom_transform" value="$(arg pub_map_odom_transform)"/>
+  
+  <!-- Map size / start point -->
+  <param name="map_resolution" value="0.050"/>
+  <param name="map_size" value="$(arg map_size)"/>
+  <param name="map_start_x" value="0.5"/>
+  <param name="map_start_y" value="0.5" />
+  <param name="map_multi_res_levels" value="2" />
+  
+  <!-- Map update parameters -->
+  <param name="update_factor_free" value="0.4"/>
+  <param name="update_factor_occupied" value="0.9" />    
+  <param name="map_update_distance_thresh" value="0.4"/>
+  <param name="map_update_angle_thresh" value="0.06" />
+  <param name="laser_z_min_value" value = "-1.0" />
+  <param name="laser_z_max_value" value = "1.0" />
+  
+  <!-- Advertising config --> 
+  <param name="advertise_map_service" value="true"/>
+  
+  <param name="scan_subscriber_queue_size" value="$(arg scan_subscriber_queue_size)"/>
+  <param name="scan_topic" value="$(arg scan_topic)"/>
+  
+
+  <param name="tf_map_scanmatch_transform_frame_name" value="$(arg tf_map_scanmatch_transform_frame_name)" />
+</node>
+  
+
+<!-- down few lines -->
+<!-- To localize in a known map, we feed information from our recorded maps and the Hector SLAM odometry to AMCL, 
+a probabilistic localization package. In the launch file mentioned above, the following lines are important they 
+specify the names of relevant topics and other localization parameters. -->
+	<!-- 
+		AMCL stuff.
+	 -->
+	<node pkg="amcl" type="amcl" name="amcl">
+  <param name="tf_broadcast" value="true" />
+  <param name="base_frame_id" value="/base_link" /> <!--slash-->
+  <param name="global_frame_id" value="/map" />
+  <param name="odom_frame_id" value="/scanmatch_odom" />
+  <param name="use_map_topic" value="false" />
+
+
+  <!-- AMCL -->
+  
+  <param name="min_particles"             value="100"/>
+  <param name="max_particles"             value="150"/>
+  <param name="kld_err"                   value="0.05"/>
+	<param name="kld_z"                   value="0.99"/>
+  <param name="update_min_d"              value="0.20"/>
+  <param name="update_min_a"              value="0.20"/>
+  <param name="resample_interval"         value="1"/>
+  <param name="transform_tolerance"       value="0.1"/>
+  <param name="recovery_alpha_slow"       value="0.00"/>
+  <param name="recovery_alpha_fast"       value="0.00"/>
+  <param name="gui_publish_rate"          value="10.0"/>
+
+  <!-- <remap from="scan"                      to="$(arg scan_topic)"/> -->
+  <param name="laser_max_range"           value="6"/>
+  <param name="laser_min_range"           value="0.1"/>
+  <param name="laser_max_beams"           value="180"/>
+  <param name="laser_z_hit"               value="0.5"/>
+  <param name="laser_z_short"             value="0.05"/>
+  <param name="laser_z_max"               value="0.05"/>
+  <param name="laser_z_rand"              value="0.5"/>
+  <param name="laser_sigma_hit"           value="0.2"/>
+  <param name="laser_lambda_short"        value="0.1"/>
+  <param name="laser_likelihood_max_dist" value="2.0"/>
+  <param name="laser_model_type"          value="likelihood_field"/>
+
+  <param name="odom_model_type"           value="diff"/>
+  <param name="odom_alpha1"               value="0.2"/>
+  <param name="odom_alpha2"               value="0.2"/>
+  <param name="odom_alpha3"               value="0.8"/>
+  <param name="odom_alpha4"               value="0.2"/>
+	<param name="odom_alpha5"               value="0.1"/>
+
+  </node> 
+
+<!-- MOVEMENT -->
+
+  <!-- MOVE BASE -->
+  <arg name="no_static_map" default="false"/>
+
+  <arg name="base_global_planner" default="navfn/NavfnROS"/>
+  <arg name="base_local_planner" default="dwa_local_planner/DWAPlannerROS"/>
+  <!-- <arg name="base_local_planner" default="base_local_planner/TrajectoryPlannerROS"/> -->
+
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+
+    <param name="base_global_planner" value="$(arg base_global_planner)"/>
+    <param name="base_local_planner" value="$(arg base_local_planner)"/>  
+    <rosparam file="$(find gproject)/navigation/planner.yaml" command="load"/>
+
+    <!-- observation sources located in costmap_common.yaml -->
+    <rosparam file="$(find gproject)/navigation/costmap_common.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find gproject)/navigation/costmap_common.yaml" command="load" ns="local_costmap" />
+
+    <!-- local costmap, needs size -->
+    <rosparam file="$(find gproject)/navigation/costmap_local.yaml" command="load" ns="local_costmap" />
+    <param name="local_costmap/width" value="5.0"/>
+    <param name="local_costmap/height" value="5.0"/>
+
+    <!-- static global costmap, static map provides size -->
+    <rosparam file="$(find gproject)/navigation/costmap_global_static.yaml" command="load" ns="global_costmap" unless="$(arg no_static_map)"/>
+    
+    <!-- global costmap with laser, for odom_navigation_demo -->
+    <rosparam file="$(find gproject)/navigation/costmap_global_laser.yaml" command="load" ns="global_costmap" if="$(arg no_static_map)"/>
+    <param name="global_costmap/width" value="100.0" if="$(arg no_static_map)"/>
+    <param name="global_costmap/height" value="100.0" if="$(arg no_static_map)"/>
+  </node>
+
+
+</launch>
+
+<!-- We make use of the ROS Navigation Stack to have the robot navigate around the map autonomously. 
+This subset of ROS packages can plan paths in maps with dynamic obstacles and directly control robots 
+via publishing commands to the topic /cmd_vel. Our Arduino is subscribed to this topic and uses its 
+information to move the robot. To put this together I have followed the Navigation Stack Robot Setup 
+page on the ROS website. It is relatively straightforward  please see the git repo for all the details. 
+I have not optimizes the robot dimensions and thresholds yet, but they work nontheless. The files of interest are
+
+base_local_planner_params.yaml
+costmap_common_params.yaml
+global_costmap_params.yaml
+local_costmap_params.yaml
+
+Youll notice that the bottom of the launch file includes these yaml files as parameters for the Movement Stack move_base node.
+
+<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+  <rosparam file="$(find lidarbot)/costmap_common_params.yaml" command="load" ns="global_costmap" /> 
+  <rosparam file="$(find lidarbot)/costmap_common_params.yaml" command="load" ns="local_costmap" />
+  <rosparam file="$(find lidarbot)/local_costmap_params.yaml" command="load" />
+  <rosparam file="$(find lidarbot)/global_costmap_params.yaml" command="load" /> 
+  <rosparam file="$(find lidarbot)/base_local_planner_params.yaml" command="load" />
+</node>
+These files specify robot dimensions, max and min allowed velocities, and various parameters for cost maps and navigation. 
+Dont forget to make and source your workspace! -->
