@@ -4,7 +4,7 @@ sudo chmod a+rw /dev/ttyACM0
 
 roslaunch gproject lidar.launch
 
-roslaunch hector_slam tutorial.launch
+roslaunch hector_slam_launch tutorial.launch
 
 rosrun map_server map_saver -f ~/ros/catkin_ws/src/gproject/worlds/home1
 
