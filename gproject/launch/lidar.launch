@@ -6,7 +6,8 @@
 <!-- <param name="port" value="/dev/ttyUSB0" /> -->
 <!-- </node> -->
 <!-- <include file="$(find hls_lfcd_lds_driver)/launch/hlds_laser.launch" /> -->
-<include file="$(find cspc_lidar)/launch/start.launch" />
+<!-- <include file="$(find cspc_lidar)/launch/start.launch" /> -->
+<include file="$(find rplidar_ros)/launch/rplidar.launch" />
 
 
 <node pkg="rosserial_python" type="serial_node.py" name="serial_arduino"> 
